@@ -1,0 +1,139 @@
+diff --git a/arch/arm/dts/sun8i-v3s-licheepi-zero.dts b/arch/arm/dts/sun8i-v3s-licheepi-zero.dts
+index 3d9168cbae..9ce2d0edaf 100644
+--- a/arch/arm/dts/sun8i-v3s-licheepi-zero.dts
++++ b/arch/arm/dts/sun8i-v3s-licheepi-zero.dts
+@@ -49,11 +49,12 @@
+ 	compatible = "licheepi,licheepi-zero", "allwinner,sun8i-v3s";
+ 
+ 	aliases {
+-		serial0 = &uart0;
++		ethernet0 = &emac;
++		serial2 = &uart2;
+ 	};
+ 
+ 	chosen {
+-		stdout-path = "serial0:115200n8";
++		stdout-path = "serial2:115200n8";
+ 	};
+ };
+ 
+@@ -66,10 +67,10 @@
+ 	status = "okay";
+ };
+ 
+-&uart0 {
+-	pinctrl-0 = <&uart0_pins_a>;
+-	pinctrl-names = "default";
+-	status = "okay";
++&uart2 {
++        pinctrl-0 = <&uart2_pins_a>;
++        pinctrl-names = "default";
++        status = "okay";
+ };
+ 
+ &usb_otg {
+@@ -81,3 +82,14 @@
+ 	usb0_id_det-gpio = <&pio 5 6 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
+ };
++
++&emac {
++       phy = <&phy0>;
++       phy-mode = "mii";
++       allwinner,use-internal-phy;
++       allwinner,leds-active-low;
++       status = "okay";
++       phy0: ethernet-phy@0 {
++               reg = <1>;
++       };
++};
+diff --git a/arch/arm/dts/sun8i-v3s.dtsi b/arch/arm/dts/sun8i-v3s.dtsi
+index ebefc0fefe..eadd18af5b 100644
+--- a/arch/arm/dts/sun8i-v3s.dtsi
++++ b/arch/arm/dts/sun8i-v3s.dtsi
+@@ -96,6 +96,11 @@
+ 		#size-cells = <1>;
+ 		ranges;
+ 
++               syscon: syscon@01c00000 {
++                       compatible = "allwinner,sun8i-v3s-syscon","syscon";
++                       reg = <0x01c00000 0x34>;
++               };
++
+ 		mmc0: mmc@01c0f000 {
+ 			compatible = "allwinner,sun7i-a20-mmc";
+ 			reg = <0x01c0f000 0x1000>;
+@@ -208,12 +213,29 @@
+ 			interrupt-controller;
+ 			#interrupt-cells = <3>;
+ 
++                       emac_rgmii_pins: emac0@0 {
++                               allwinner,pins = "PD0", "PD1", "PD2", "PD3",
++                                               "PD4", "PD5", "PD7",
++                                               "PD8", "PD9", "PD10",
++                                               "PD12", "PD13", "PD15",
++                                               "PD16", "PD17";
++                               allwinner,function = "emac";
++                               allwinner,drive = <SUN4I_PINCTRL_40_MA>;
++                               allwinner,pull = <SUN4I_PINCTRL_NO_PULL>;
++                       };
++
+ 			uart0_pins_a: uart0@0 {
+ 				pins = "PB8", "PB9";
+ 				function = "uart0";
+ 				bias-pull-up;
+ 			};
+ 
++			uart2_pins_a: uart2@0 {
++				pins = "PB0", "PB1";
++				function = "uart2";
++				bias-pull-up;
++			};
++
+ 			mmc0_pins_a: mmc0@0 {
+ 				pins = "PF0", "PF1", "PF2", "PF3",
+ 				       "PF4", "PF5";
+@@ -270,6 +292,20 @@
+ 			status = "disabled";
+ 		};
+ 
++               emac: ethernet@1c30000 {
++                       compatible = "allwinner,sun8i-h3-emac";
++                       reg = <0x01c30000 0x104>, <0x01c00030 0x4>;
++                       reg-names = "emac", "syscon";
++                       interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
++                       resets = <&ccu RST_BUS_EMAC>, <&ccu RST_BUS_EPHY>;
++                       reset-names = "ahb", "ephy";
++                       clocks = <&ccu CLK_BUS_EMAC>, <&ccu CLK_BUS_EPHY>;
++                       clock-names = "ahb", "ephy";
++                       #address-cells = <1>;
++                       #size-cells = <0>;
++                       status = "disabled";
++               };
++
+ 		gic: interrupt-controller@01c81000 {
+ 			compatible = "arm,cortex-a7-gic", "arm,cortex-a15-gic";
+ 			reg = <0x01c81000 0x1000>,
+diff --git a/include/configs/sunxi-common.h b/include/configs/sunxi-common.h
+index f4489fad6d..d34f4075fa 100644
+--- a/include/configs/sunxi-common.h
++++ b/include/configs/sunxi-common.h
+@@ -261,7 +261,7 @@ extern int soft_i2c_gpio_scl;
+ #endif
+ 
+ #ifndef CONFIG_CONS_INDEX
+-#define CONFIG_CONS_INDEX              1       /* UART0 */
++#define CONFIG_CONS_INDEX              3       /* UART2 */
+ #endif
+ 
+ #ifdef CONFIG_REQUIRE_SERIAL_CONSOLE
+diff --git a/tools/binman/binman.py b/tools/binman/binman.py
+index 7fb67cb25f..2d4a110a51 100755
+--- a/tools/binman/binman.py
++++ b/tools/binman/binman.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python2
+ 
+ # Copyright (c) 2016 Google, Inc
+ # Written by Simon Glass <sjg@chromium.org>

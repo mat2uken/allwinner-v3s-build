@@ -1,0 +1,54 @@
+diff --git a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+index d63a9a336554..782f673796ee 100644
+--- a/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
++++ b/arch/arm/boot/dts/sun8i-v3s-licheepi-zero.dts
+@@ -49,11 +49,12 @@
+ 	compatible = "licheepi,licheepi-zero", "allwinner,sun8i-v3s";
+ 
+ 	aliases {
+-		serial0 = &uart0;
++		ethernet0 = &emac;
++		serial2 = &uart2;
+ 	};
+ 
+ 	chosen {
+-		stdout-path = "serial0:115200n8";
++		stdout-path = "serial2:115200n8";
+ 	};
+ 
+ 	leds {
+@@ -103,14 +104,14 @@
+ 	status = "okay";
+ };
+ 
+-&uart0 {
+-	pinctrl-0 = <&uart0_pins_a>;
++&uart2 {
++	pinctrl-0 = <&uart2_pins_a>;
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+ &usb_otg {
+-	dr_mode = "otg";
++	dr_mode = "host";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/sun8i-v3s.dtsi b/arch/arm/boot/dts/sun8i-v3s.dtsi
+index 602ce66d5bc5..a6dabb7d46ec 100644
+--- a/arch/arm/boot/dts/sun8i-v3s.dtsi
++++ b/arch/arm/boot/dts/sun8i-v3s.dtsi
+@@ -342,6 +342,12 @@
+ 				function = "uart0";
+ 			};
+ 
++                        uart2_pins_a: uart2@0 {
++                                pins = "PB0", "PB1";
++                                function = "uart2";
++                                bias-pull-up;
++                        };
++
+ 			mmc0_pins_a: mmc0@0 {
+ 				pins = "PF0", "PF1", "PF2", "PF3",
+ 				       "PF4", "PF5";
