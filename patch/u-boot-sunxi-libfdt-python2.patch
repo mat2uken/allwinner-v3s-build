@@ -1,0 +1,10 @@
+diff --git a/lib/libfdt/pylibfdt/setup.py b/lib/libfdt/pylibfdt/setup.py
+index daf1089425..4f7cf042bf 100755
+--- a/lib/libfdt/pylibfdt/setup.py
++++ b/lib/libfdt/pylibfdt/setup.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python2
+ 
+ """
+ setup.py file for SWIG libfdt
